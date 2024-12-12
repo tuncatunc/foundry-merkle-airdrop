@@ -40,7 +40,7 @@ contract MerkleAirdropTest is Test, ZkSyncChainChecker {
         // Effects
 
         vm.prank(user);
-        merkleAirdrop.claim(user, AMOUNT, PROOF);
+        merkleAirdrop.claim(AMOUNT, PROOF);
 
         uint256 newBalance = beagleToken.balanceOf(user);
         assertEq(newBalance, previousBalance + AMOUNT);
@@ -51,12 +51,13 @@ contract MerkleAirdropTest is Test, ZkSyncChainChecker {
         uint256 previousBalance = beagleToken.balanceOf(user);
 
         // Effects
-        merkleAirdrop.claim(user, AMOUNT, PROOF);
+        vm.prank(user);
+        merkleAirdrop.claim(AMOUNT, PROOF);
 
         // Interactions
         vm.prank(user);
         vm.expectRevert(abi.encodeWithSelector(MerkleAirdrop.MerkleAirdrop__TokensAlreadyClaimed.selector, user));
-        merkleAirdrop.claim(user, AMOUNT, PROOF);
+        merkleAirdrop.claim(AMOUNT, PROOF);
 
         uint256 newBalance = beagleToken.balanceOf(user);
         assertEq(newBalance, previousBalance + AMOUNT);
@@ -68,6 +69,6 @@ contract MerkleAirdropTest is Test, ZkSyncChainChecker {
         // Interactions
         vm.prank(invalidUser.addr);
         vm.expectRevert(abi.encodeWithSelector(MerkleAirdrop.MerkleAirdrop__InvalidProof.selector));
-        merkleAirdrop.claim(invalidUser.addr, AMOUNT, PROOF);
+        merkleAirdrop.claim(AMOUNT, PROOF);
     }
 }

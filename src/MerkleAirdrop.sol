@@ -34,8 +34,9 @@ contract MerkleAirdrop is Ownable {
         i_token = token;
     }
 
-    function claim(address account, uint256 amount, bytes32[] memory proof) external notClaimed(account) {
+    function claim(uint256 amount, bytes32[] memory proof) external notClaimed(msg.sender) {
         // Checks
+        address account = msg.sender;
         bytes32 node = keccak256(bytes.concat(keccak256(abi.encode(account, amount))));
         if (!MerkleProof.verify(proof, i_merkleRoot, node)) {
             revert MerkleAirdrop__InvalidProof();
