@@ -6,3 +6,6 @@ NETWORK_ARGS := --rpc-url http://localhost:8545 --private-key $(DEFAULT_ANVIL_KE
 
 deploy-local:
 	@forge script script/DeployMerkleAirdrop.s.sol:DeployMerkleAirdrop $(NETWORK_ARGS)
+
+script-interactions:
+	@forge script script/Interact.s.sol:ClaimAirdrop $(NETWORK_ARGS)

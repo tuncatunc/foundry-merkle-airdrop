@@ -6,7 +6,11 @@ remappings = [
   "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts",
   "@foundry-devops/=lib/foundry-devops/src",
 ]
-fs_permissions = [{ access = "read-write", path = "./script/target" }]
+fs_permissions = [
+  { access = "read-write", path = "./" },
+  { access = "read", path = "./script/target/" },
+]
 
+ffi = true
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
