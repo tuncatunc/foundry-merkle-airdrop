@@ -2,31 +2,56 @@
 
 pragma solidity 0.8.24;
 
-import {Script} from "forge-std/Script.sol";
+import {Script, console} from "forge-std/Script.sol";
 import {MerkleAirdrop} from "../src/MerkleAirdrop.sol";
-import {BeagleToken} from "../src/BeagleToken.sol";
+import {BigganosToken} from "../src/BigganosToken.sol";
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 
 contract DeployMerkleAirdrop is Script {
-    bytes32 private s_merkleRoot = 0xaa5d581231e596618465a56aa0f5870ba6e20785fe436d5bfb82b08662ccc7c4;
-    uint256 private constant AMOUNT_TO_AIRDROP = 25 * 1e18;
-    uint256 private constant AMOUNT_TO_TRANSFER = 4 * AMOUNT_TO_AIRDROP;
+    bytes32 private s_merkleRoot;
 
-    function deploy() public returns (MerkleAirdrop, BeagleToken) {
+    uint256 private BIG_CONTRACTORS_WALLET_PRIVATE_KEY = vm.envUint("BIG_CONTRACTORS_WALLET_PRIVATE_KEY");
+    address private BIG_CONTRACTORS_WALLET_ADDRESS = vm.envAddress("BIG_CONTRACTORS_WALLET_ADDRESS");
+    address private BIG_CODESTUDIO_WALLET_ADDRESS = vm.envAddress("BIG_CODESTUDIO_WALLET_ADDRESS");
+    address private BIG_PUBLIC_WALLET_ADDRESS = vm.envAddress("BIG_PUBLIC_WALLET_ADDRESS");
+    address private BIG_PARKSTONE_WALLET_ADDRESS = vm.envAddress("BIG_PARKSTONE_WALLET_ADDRESS");
+    address private BIG_WALLET_ADDRESS = vm.envAddress("BIG_WALLET_ADDRESS");
+
+    function deploy() public returns (MerkleAirdrop, BigganosToken) {
+        console.log("Deploying MerkleAirdrop and BigganosToken contracts");
+        _loadMerkleRootFromOutputJson();
         vm.startBroadcast();
         // deploy BeagleToken contract
-        BeagleToken beagleToken = new BeagleToken();
+        BigganosToken bigganosToken = new BigganosToken(
+            BIG_CONTRACTORS_WALLET_ADDRESS,
+            BIG_CODESTUDIO_WALLET_ADDRESS,
+            BIG_PUBLIC_WALLET_ADDRESS,
+            BIG_PARKSTONE_WALLET_ADDRESS,
+            BIG_WALLET_ADDRESS
+        );
         // deploy MerkleAirdrop contract
-        MerkleAirdrop merkleAirdrop = new MerkleAirdrop(s_merkleRoot, address(beagleToken));
-        // mint tokens to the airdrop contract
-        beagleToken.mint(address(beagleToken.owner()), AMOUNT_TO_TRANSFER);
-        beagleToken.transfer(address(merkleAirdrop), AMOUNT_TO_TRANSFER);
+        MerkleAirdrop merkleAirdrop = new MerkleAirdrop(s_merkleRoot);
         vm.stopBroadcast();
-        return (merkleAirdrop, beagleToken);
+
+        vm.startBroadcast(BIG_CONTRACTORS_WALLET_PRIVATE_KEY);
+        bigganosToken.transfer(address(merkleAirdrop), bigganosToken.CONTRACTORS_ALLOCATION());
+        vm.stopBroadcast();
+
+        vm.startBroadcast();
+        merkleAirdrop.setAirdropToken(address(bigganosToken));
+        vm.stopBroadcast();
+        return (merkleAirdrop, bigganosToken);
     }
 
-    function run() public returns (MerkleAirdrop, BeagleToken) {
-        // deploy MerkleAirdrop contract
+    function run() public returns (MerkleAirdrop, BigganosToken) {
         return deploy();
+    }
+
+    function _loadMerkleRootFromOutputJson() private {
+        string memory json = vm.readFile("./script/target/output.json");
+        bytes32 root = bytes32(vm.parseJson(json, "[0].root"));
+        console.log("Merkle root:");
+        console.logBytes32(root);
+        s_merkleRoot = root;
     }
 }

@@ -14,7 +14,6 @@ contract MerkleAirdrop is Ownable {
         if (s_claimed[account]) {
             revert MerkleAirdrop__TokensAlreadyClaimed(account);
         }
-
         _;
     }
 
@@ -26,12 +25,11 @@ contract MerkleAirdrop is Ownable {
     event MerkleAirdrop__Claim(address account, uint256 amount);
 
     bytes32 private immutable i_merkleRoot;
-    address private immutable i_token;
+    address private s_token;
     mapping(address claimer => bool claimed) private s_claimed;
 
-    constructor(bytes32 merkleRoot, address token) Ownable(msg.sender) {
+    constructor(bytes32 merkleRoot) Ownable(msg.sender) {
         i_merkleRoot = merkleRoot;
-        i_token = token;
     }
 
     function claim(uint256 amount, bytes32[] memory proof) external notClaimed(msg.sender) {
@@ -47,7 +45,7 @@ contract MerkleAirdrop is Ownable {
         emit MerkleAirdrop__Claim(account, amount);
 
         // Interactions
-        IERC20(i_token).safeTransfer(account, amount);
+        IERC20(s_token).safeTransfer(account, amount);
         //s_claimed[account] = true; // this is against Check Effects Interactions pattern and it can lead to reentrancy
     }
 
@@ -56,6 +54,10 @@ contract MerkleAirdrop is Ownable {
     }
 
     function getAirdropToken() external view returns (address) {
-        return i_token;
+        return s_token;
+    }
+
+    function setAirdropToken(address token) external onlyOwner {
+        s_token = token;
     }
 }

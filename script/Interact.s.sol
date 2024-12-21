@@ -6,7 +6,7 @@ import {Script, stdJson} from "forge-std/Script.sol";
 
 import {DevOpsTools} from "foundry-devops/src/DevOpsTools.sol";
 import {MerkleAirdrop} from "../src/MerkleAirdrop.sol";
-import {BeagleToken} from "../src/BeagleToken.sol";
+import {BigganosToken} from "../src/BigganosToken.sol";
 
 contract ClaimAirdrop is Script {
     string private constant OUTPUT_PATH = "script/target/output.json";
